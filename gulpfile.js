@@ -1,10 +1,11 @@
 'use strict';
 
-var browserSync = require('browser-sync').create();
-var gulp = require('gulp');
-var jslint = require('gulp-jslint');
-var sass = require('gulp-sass');
-var sourceMaps = require("gulp-sourcemaps");
+const gulp = require('gulp'),
+  { src, dest, parallel, series, watch } = gulp,
+  browserSync = require('browser-sync').create(),
+  jslint = require('gulp-jslint'),
+  sass = require('gulp-sass'),
+  sourceMaps = require("gulp-sourcemaps");
 
 var FILES = {
 	css: 'css/',
@@ -13,46 +14,48 @@ var FILES = {
 	'js-folder': 'js/'
 };
 
-
 // Server
-gulp.task('browserSync', function() {
+function serve( done ) {
   browserSync.init({
     server: {
       baseDir: './'
-    }
+    },
+    notify: false
   });
-});
+  done();
+}
 
-// SASS
-gulp.task('sass', function(){
-  return gulp.src(FILES.sass)
+// Server Reload
+function reload( done ) {
+  browserSync.reload();
+  done();
+}
+
+// SASS to CSS
+function css(){
+  return rc( FILES.sass )
     .pipe( sourceMaps.init() )
     .pipe( sass().on('error', swallowError ) )
     .pipe( sourceMaps.write("./") )    
-    .pipe( gulp.dest(FILES.css) )
-    .pipe(browserSync.reload({
-      stream: true
-    }));
-});
-
-// JSLint
-gulp.task('jslint', function () {
-    return gulp.src([FILES.js])
-            .pipe(jslint({ /* this object represents the JSLint directives being passed down */ }))
-            .pipe(jslint.reporter( 'my-reporter' ));
-});
-
-gulp.task('watch', ['browserSync', 'sass'], function() {
-	gulp.watch( FILES.js, ['jslint'] );
-	gulp.watch( FILES.sass, ['sass'] );
-});
-
-gulp.task('default', ['watch']);
-
-function swallowError (error) {
-
-  // If you want details of the error in the console
-  console.log(error.toString())
-
-  this.emit('end')
+    .pipe( dest(FILES.css) )
+    .pipe( reload );
 }
+
+// Watch
+function watcher() {
+  watch( FILES.sass, sass );
+}
+
+// Debug
+function swallowError(error) {
+  // If you want details of the error in the console
+  console.log( error.toString() )
+  this.emit( 'end' )
+}
+
+exports.serve = serve;
+exports.reload = reload;
+exports.css = css;
+exports.watcher = watcher;
+
+exports.default = parallel( serve, watcher );

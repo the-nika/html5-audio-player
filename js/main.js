@@ -26,10 +26,12 @@ var audioPlayer = function() {
   * @param audio The audio element on the page.
   **/
   var _bufferProgress = function(audio) {
-    var bufferedTime = (audio.buffered.end(0) * 100) / audio.duration;
-    var progressBuffer = _elements.progressBar.children[0].children[0].children[0];
+    audio.onprogress = function(){
+      var bufferedTime = (audio.buffered.end(0) * 100) / audio.duration;
+      var progressBuffer = _elements.progressBar.children[0].children[0].children[0];
 
-    progressBuffer.style.width = bufferedTime + "%";
+      progressBuffer.style.width = bufferedTime + "%";
+    }
   };
 
   /**
